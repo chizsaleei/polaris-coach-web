@@ -1,6 +1,264 @@
+/* src/app/globals.css */
+
+/* Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light dark; }
-html,body{ height:100%; }
+/* -----------------------------------------------------------------------------
+   Brand & semantic tokens (light and dark)
+----------------------------------------------------------------------------- */
+@layer base {
+  :root {
+    /* Brand base colors */
+    --primary: #07435E;
+    --secondary: #042838;
+    --accent: #4390BA;
+    --accent-soft: #E4F3FB;
+    --base-dark: #001C29;
+
+    /* Surfaces */
+    --surface: #FFFFFF;
+    --surface-alt: #F2FBFF;
+    --surface-raised: #DBF7FF;
+    --surface-muted: #E7F6FA;
+
+    /* Text */
+    --text-primary: #000000;
+    --text-secondary: #2D333A;
+    --text-muted: #6A7A88;
+    --text-inverse: #FFFFFF;
+
+    /* Borders and dividers */
+    --border: #D5E7F0;
+    --divider: #D9E8EF;
+
+    /* Status */
+    --success: #2ECC71;
+    --warning: #F4D03F;
+    --danger: #E74C3C;
+    --info: #4390BA;
+
+    /* On-colors */
+    --on-primary: #FFFFFF;
+    --on-secondary: #FFFFFF;
+    --on-accent: #001C29;
+    --on-surface: #042838;
+
+    /* UI tokens */
+    --ring-width: 2px;
+    --radius: 1rem;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+    --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.16);
+
+    /* Typography from next/font */
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji",
+      "Segoe UI Emoji";
+    --font-serif: var(--font-playfair), ui-serif, Georgia, Cambria,
+      "Times New Roman", Times, serif;
+
+    /* Focus and selection */
+    --focus-outline: var(--accent);
+    --selection-bg: var(--surface-raised);
+    --selection-fg: var(--secondary);
+
+    /* Container max width */
+    --container: 72rem; /* 1152px */
+  }
+
+  .dark {
+    /* Surfaces */
+    --surface: #001C29;
+    --surface-alt: #042838;
+    --surface-raised: #07435E;
+    --surface-muted: #062F43;
+
+    /* Text */
+    --text-primary: #FFFFFF;
+    --text-secondary: #C7D2DA;
+    --text-muted: #7F9AA6;
+    --text-inverse: #000000;
+
+    /* Borders and dividers */
+    --border: #0D3B51;
+    --divider: #083143;
+
+    /* On-colors */
+    --on-surface: #EAF7FF;
+
+    /* Focus and selection */
+    --focus-outline: #6AC3E8;
+    --selection-bg: #073246;
+    --selection-fg: #EAF7FF;
+  }
+
+  html {
+    @apply scroll-smooth;
+    color-scheme: light dark;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: var(--surface);
+  }
+
+  /* Base typography */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl font-semibold;
+  }
+  h2 {
+    @apply text-2xl sm:text-3xl font-semibold;
+  }
+  h3 {
+    @apply text-xl sm:text-2xl font-semibold;
+  }
+  h4 {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+
+  p {
+    @apply leading-relaxed;
+    color: var(--text-secondary);
+  }
+
+  /* Links */
+  a {
+    color: var(--primary);
+  }
+  a:hover {
+    color: var(--accent);
+  }
+
+  /* Text selection */
+  ::selection {
+    background: var(--selection-bg);
+    color: var(--selection-fg);
+  }
+
+  /* Focus visibility */
+  :focus-visible {
+    outline: var(--ring-width) solid var(--focus-outline);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Accessible container helper to match layout spacing */
+  .container {
+    max-width: var(--container);
+  }
+
+  /* Scrollbar (webkit) */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--secondary) 60%, transparent);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Components layer: shared helpers used by app pages
+----------------------------------------------------------------------------- */
+@layer components {
+  /* Card shell */
+  .pc-card {
+    @apply rounded-2xl shadow;
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  /* Badge and chip */
+  .pc-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+    background: var(--accent-soft);
+    color: var(--secondary);
+  }
+
+  /* Primary button skin for <Button className="pc-primary"> */
+  .pc-primary {
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold transition;
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: var(--shadow-sm);
+  }
+  .pc-primary:hover {
+    filter: brightness(1.05);
+  }
+  .pc-primary:disabled {
+    @apply opacity-60 cursor-not-allowed;
+  }
+
+  /* Surface section */
+  .pc-section {
+    @apply rounded-2xl p-4 sm:p-6;
+    background: var(--surface-alt);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  /* Gradient header band used in dashboards and hero */
+  .pc-hero {
+    background:
+      radial-gradient(
+        1200px 600px at 10% -10%,
+        rgba(67, 144, 186, 0.25),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 90% -10%,
+        rgba(7, 67, 94, 0.35),
+        transparent 60%
+      );
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Utilities layer: tiny helpers that do not exist in Tailwind core
+----------------------------------------------------------------------------- */
+@layer utilities {
+  /* Clamp prose width for long text */
+  .prose-clamp {
+    max-width: 70ch;
+  }
+
+  /* Subtle divider */
+  .divider {
+    border-top: 1px solid var(--divider);
+  }
+
+  /* Ring utility that honors brand token */
+  .ring-brand {
+    box-shadow: 0 0 0 var(--ring-width) var(--focus-outline);
+  }
+}
