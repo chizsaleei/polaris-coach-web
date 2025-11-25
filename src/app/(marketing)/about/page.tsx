@@ -99,8 +99,8 @@ export default function AboutPage() {
                 <li>Researchers and professionals presenting work to global teams</li>
               </ul>
               <p className="mt-3 text-xs text-slate-300">
-                If you often think "I know what to say, but not how to say it clearly", Polaris Coach
-                is built for you.
+                If you often think &ldquo;I know what to say, but not how to say it clearly&rdquo;,
+                Polaris Coach is built for you.
               </p>
             </div>
           </div>

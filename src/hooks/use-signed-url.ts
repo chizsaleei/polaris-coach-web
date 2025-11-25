@@ -88,18 +88,34 @@ export function useSignedUrl(): UseSignedUrlResult {
         const json = await safeJson(res)
 
         if (!res.ok) {
-          const msg =
-            (json && typeof json.message === 'string' && json.message) ||
-            `Upload URL request failed (${res.status})`
+          const msg = extractErrorMessage(json) || `Upload URL request failed (${res.status})`
           throw new Error(msg)
         }
 
-        const rawData = json && typeof json === 'object' && 'data' in json ? (json as any).data : json
+        type UploadResponse = {
+          data?: SignedUploadPayload | null
+        } & Partial<SignedUploadPayload>
+
+        type SignedUploadPayload = {
+          bucket?: string
+          key?: string
+          url?: string
+          upload_url?: string
+          headers?: Record<string, string>
+          content_type?: string
+          token?: string
+          expires_at?: string
+        }
+
+        const typedJson = json as UploadResponse | null
+        const rawData: SignedUploadPayload | null | undefined =
+          typedJson && typeof typedJson === 'object' && 'data' in typedJson
+            ? typedJson.data
+            : typedJson
         if (!rawData || typeof rawData !== 'object') {
           throw new Error('Upload URL response missing data.')
         }
-
-        const data: any = rawData
+        const data = rawData
 
         // Core-style contract: upload_url + content_type + token + expires_at + bucket + key
         const url: string | undefined = data.url ?? data.upload_url
@@ -137,10 +153,18 @@ export function useSignedUrl(): UseSignedUrlResult {
   return { createSignedUrl, loading, error }
 }
 
-async function safeJson(res: Response): Promise<any | null> {
+async function safeJson(res: Response): Promise<unknown | null> {
   try {
     return await res.json()
   } catch {
     return null
   }
+}
+
+function extractErrorMessage(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+  const value = (payload as { message?: unknown }).message
+  return typeof value === 'string' ? value : null
 }

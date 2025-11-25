@@ -36,17 +36,14 @@ export default async function EntitlementGuard({ children }: { children: ReactNo
   if (!session) redirect('/login')
 
   try {
-    const res = await coreGet<{ ok?: boolean; data?: Capabilities } | Capabilities>(
-      '/api/user/capabilities',
-      {
-        authBearer: session.access_token,
-        cache: 'no-store',
-      },
-    )
+    type CapabilitiesResponse = { ok?: boolean; data?: Capabilities | null } | Capabilities
+    const res = await coreGet<CapabilitiesResponse>('/api/user/capabilities', {
+      authBearer: session.access_token,
+      cache: 'no-store',
+    })
 
-    const body = res as any
     const caps: Capabilities | null =
-      body?.data ?? (body && body.tier ? (body as Capabilities) : null)
+      ('data' in res && res.data) || ('tier' in res ? res : null)
 
     if (!caps) {
       log.warn('capabilities_missing', { reason: 'empty_response' })

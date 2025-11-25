@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 import { getSupabaseServerClient, requireUser } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
@@ -40,6 +41,30 @@ type EditorialItem = {
   autoQaStatus: string | null
   flagged: boolean
 }
+
+type EditorialRow = {
+  id: string
+  title?: string | null
+  coach_key?: string | null
+  topic_key?: string | null
+  domain_key?: string | null
+  difficulty?: number | null
+  tags?: string[] | null
+  state?: string | null
+  is_public?: boolean | null
+  created_at: string
+  updated_at?: string | null
+  auto_qa_score?: number | null
+  auto_qa_status?: string | null
+  flagged?: boolean | null
+}
+
+type AdminUser =
+  | Pick<User, 'app_metadata' | 'user_metadata'>
+  | {
+      app_metadata?: Record<string, unknown> | null
+      user_metadata?: Record<string, unknown> | null
+    }
 
 type EditorialSummary = {
   totalItems: number
@@ -325,22 +350,26 @@ async function loadEditorialItems(): Promise<EditorialItem[]> {
 
   if (!data) return []
 
-  return data.map((row: any): EditorialItem => ({
-    id: row.id,
-    title: row.title ?? 'Untitled drill',
-    coachKey: row.coach_key ?? null,
-    topicKey: row.topic_key ?? null,
-    domainKey: row.domain_key ?? null,
-    difficulty: nullableNumber(row.difficulty),
-    tags: Array.isArray(row.tags) ? row.tags.filter(Boolean) : [],
-    state: normalizeState(row.state),
-    isPublic: Boolean(row.is_public),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at ?? row.created_at,
-    autoQaScore: nullableNumber(row.auto_qa_score),
-    autoQaStatus: row.auto_qa_status ?? null,
-    flagged: Boolean(row.flagged),
-  }))
+  const rows: unknown[] = Array.isArray(data) ? data : []
+
+  return rows
+    .filter(isEditorialRow)
+    .map((row): EditorialItem => ({
+      id: row.id,
+      title: row.title ?? 'Untitled drill',
+      coachKey: row.coach_key ?? null,
+      topicKey: row.topic_key ?? null,
+      domainKey: row.domain_key ?? null,
+      difficulty: nullableNumber(row.difficulty),
+      tags: Array.isArray(row.tags) ? row.tags.filter(Boolean) : [],
+      state: normalizeState(row.state),
+      isPublic: Boolean(row.is_public),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at ?? row.created_at,
+      autoQaScore: nullableNumber(row.auto_qa_score),
+      autoQaStatus: row.auto_qa_status ?? null,
+      flagged: Boolean(row.flagged),
+    }))
 }
 
 function buildEditorialSummary(items: EditorialItem[]): EditorialSummary {
@@ -440,7 +469,7 @@ function normalizeState(raw: unknown): EditorialState {
   return 'draft'
 }
 
-function isAdminUser(user: any): boolean {
+function isAdminUser(user: AdminUser | null): boolean {
   const appMeta = (user?.app_metadata ?? {}) as Record<string, unknown>
   const userMeta = (user?.user_metadata ?? {}) as Record<string, unknown>
 
@@ -453,11 +482,6 @@ function isAdminUser(user: any): boolean {
     (appMeta.is_admin as boolean | undefined)
 
   return role === 'admin' || role === 'superadmin' || Boolean(isAdminFlag)
-}
-
-function numberOrZero(value: unknown): number {
-  const num = Number(value)
-  return Number.isFinite(num) ? num : 0
 }
 
 function nullableNumber(value: unknown): number | null {
@@ -515,4 +539,10 @@ function truncateId(id: string, length = 8): string {
 function isMissingRelation(error?: { message?: string }) {
   const msg = (error?.message || '').toLowerCase()
   return msg.includes('does not exist') || msg.includes('missing')
+}
+
+function isEditorialRow(row: unknown): row is EditorialRow {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return false
+  const candidate = row as Record<string, unknown>
+  return typeof candidate.id === 'string' && typeof candidate.created_at === 'string'
 }

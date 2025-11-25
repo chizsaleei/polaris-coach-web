@@ -33,6 +33,15 @@ type CoachAvatarMeta = {
   label: string;
 };
 
+type UserMetadata = {
+  full_name?: string | null;
+};
+
+type ProfileSummary = {
+  full_name: string | null;
+  active_coach_key: string | null;
+};
+
 const COACH_AVATAR: Partial<Record<CoachKey, CoachAvatarMeta>> = {
   chase_krashen: {
     src: "/coach-assets/chase-krashen/avatar-256.webp",
@@ -99,11 +108,11 @@ export default async function ChatPage() {
     .from("profiles")
     .select("full_name, active_coach_key")
     .eq("id", user.id)
-    .maybeSingle();
+    .maybeSingle<ProfileSummary>();
 
+  const userMetadata = (user.user_metadata ?? {}) as UserMetadata;
   const fullName: string | undefined =
-    (profile?.full_name as string | undefined) ||
-    ((user.user_metadata as any)?.full_name as string | undefined);
+    profile?.full_name ?? userMetadata.full_name ?? undefined;
 
   const firstName = fullName?.split(" ")[0] || "there";
   const activeCoachKey = (profile?.active_coach_key ?? null) as CoachKey | null;

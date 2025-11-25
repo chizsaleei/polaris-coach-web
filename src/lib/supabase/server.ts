@@ -1,9 +1,13 @@
 // src/lib/supabase/server.ts
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  type SupabaseClient,
+  type User,
+} from "@supabase/supabase-js";
 
-type ServerSupabaseClient = SupabaseClient<any>;
+type ServerSupabaseClient = SupabaseClient<unknown>;
 
 function getAccessTokenFromCookies(): string | null {
   const cookieStore = cookies();
@@ -33,7 +37,7 @@ export function getSupabaseServerClient(): ServerSupabaseClient {
 
   const accessToken = getAccessTokenFromCookies();
 
-  const client = createClient<any>(url, anonKey, {
+  const client = createClient<unknown>(url, anonKey, {
     global: {
       headers: {
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
@@ -51,9 +55,9 @@ export function getSupabaseServerClient(): ServerSupabaseClient {
 
 export type ServerSession = {
   access_token: string;
-  user?: { id: string; [key: string]: any };
+  user?: User;
   // Extra fields are allowed but not required by callers
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 /**

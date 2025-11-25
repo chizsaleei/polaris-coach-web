@@ -16,7 +16,7 @@
 
 type RealtimeOptions = {
   tokenUrl: string;
-  onResponse?: (msg: any) => void;
+  onResponse?: (msg: unknown) => void;
   onTranscription?: (text: string) => void;
   iceServers?: RTCIceServer[];
 };

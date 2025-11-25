@@ -22,6 +22,15 @@ type CoachMeta = {
   label: string
 }
 
+type UserMetadata = {
+  full_name?: string | null
+}
+
+type ProfileSummary = {
+  full_name: string | null
+  active_coach_key: string | null
+}
+
 function getCoachMeta(key?: CoachKey | null): CoachMeta | null {
   if (!key) return null
   const src = COACH_AVATAR[key]
@@ -43,14 +52,13 @@ export default async function LiveChatPage() {
     .from('profiles')
     .select('full_name, active_coach_key')
     .eq('id', user.id)
-    .maybeSingle()
+    .maybeSingle<ProfileSummary>()
 
-  const fullName: string | undefined =
-    (profile?.full_name as string | undefined) ||
-    ((user.user_metadata as any)?.full_name as string | undefined)
+  const userMetadata = (user.user_metadata ?? {}) as UserMetadata
+  const fullName: string | undefined = profile?.full_name ?? userMetadata.full_name ?? undefined
 
   const firstName = fullName?.split(' ')[0] || 'there'
-  const activeCoachKeyRaw = (profile?.active_coach_key ?? null) as string | null
+  const activeCoachKeyRaw = profile?.active_coach_key ?? null
   const coachKey: CoachKey | null =
     activeCoachKeyRaw && isCoachKey(activeCoachKeyRaw) ? (activeCoachKeyRaw as CoachKey) : null
   const coachMeta = getCoachMeta(coachKey)

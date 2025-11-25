@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 import { getSupabaseServerClient, requireUser } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
@@ -33,6 +34,21 @@ type AuditSummary = {
   uniqueEvents: number
   windowLabel: string
   topEvents: { eventKey: string; count: number }[]
+}
+
+type EventRow = {
+  id: string
+  created_at: string
+  event?: string | null
+  event_key?: string | null
+  user_id?: string | null
+  source?: string | null
+  channel?: string | null
+  coach_key?: string | null
+  tier?: string | null
+  tier_current?: string | null
+  country?: string | null
+  props?: Record<string, unknown> | null
 }
 
 export default async function AdminAuditPage() {
@@ -236,7 +252,11 @@ async function loadAuditEvents(): Promise<AuditEvent[]> {
 
   if (!data) return []
 
-  return data.map((row: any): AuditEvent => ({
+  return data.filter(isEventRow).map(mapAuditEvent)
+}
+
+function mapAuditEvent(row: EventRow): AuditEvent {
+  return {
     id: row.id,
     occurredAt: row.created_at,
     eventKey: row.event ?? row.event_key ?? 'unknown',
@@ -245,8 +265,8 @@ async function loadAuditEvents(): Promise<AuditEvent[]> {
     coachKey: row.coach_key ?? null,
     tier: row.tier ?? row.tier_current ?? null,
     country: row.country ?? null,
-    props: (row.props as Record<string, unknown> | null) ?? null,
-  }))
+    props: row.props ?? null,
+  }
 }
 
 function buildAuditSummary(events: AuditEvent[]): AuditSummary {
@@ -290,19 +310,21 @@ function buildAuditSummary(events: AuditEvent[]): AuditSummary {
   }
 }
 
-function isAdminUser(user: any): boolean {
-  const appMeta = (user?.app_metadata ?? {}) as Record<string, unknown>
-  const userMeta = (user?.user_metadata ?? {}) as Record<string, unknown>
+function isAdminUser(user: AdminCheckUser | null): boolean {
+  if (!user) return false
+  const appMeta = toMetadataRecord(user.app_metadata)
+  const userMeta = toMetadataRecord(user.user_metadata)
 
-  const role = (appMeta.role ??
-    userMeta.role ??
-    userMeta.polaris_role) as string | undefined
+  const role =
+    [appMeta.role, userMeta.role, userMeta.polaris_role].find(
+      (value): value is string => typeof value === 'string' && value.length > 0,
+    ) ?? null
 
   const isAdminFlag =
-    (userMeta.is_admin as boolean | undefined) ??
-    (appMeta.is_admin as boolean | undefined)
+    (typeof userMeta.is_admin === 'boolean' && userMeta.is_admin) ||
+    (typeof appMeta.is_admin === 'boolean' && appMeta.is_admin)
 
-  return role === 'admin' || role === 'superadmin' || Boolean(isAdminFlag)
+  return role === 'admin' || role === 'superadmin' || isAdminFlag
 }
 
 function formatTimestamp(value: string): string {
@@ -367,4 +389,22 @@ function formatPropsPreview(props: Record<string, unknown> | null): string {
 
   const suffix = entries.length > 3 ? ' +' : ''
   return preview.join(' · ') + suffix
+}
+
+function toMetadataRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  return {}
+}
+
+function isEventRow(row: unknown): row is EventRow {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return false
+  const candidate = row as Record<string, unknown>
+  return typeof candidate.id === 'string' && typeof candidate.created_at === 'string'
+}
+
+type AdminCheckUser = Pick<User, 'app_metadata' | 'user_metadata'> | {
+  app_metadata?: Record<string, unknown> | null
+  user_metadata?: Record<string, unknown> | null
 }

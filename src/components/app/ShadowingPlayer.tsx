@@ -82,8 +82,15 @@ export default function ShadowingPlayer({
         throw new Error(msg)
       }
 
-      const json: any = await res.json()
-      const url: string | undefined = json?.data?.audio_url ?? json?.data?.url
+      type TtsResponse = {
+        data?: {
+          audio_url?: string
+          url?: string
+        }
+      }
+
+      const json: TtsResponse = await res.json()
+      const url: string | undefined = json.data?.audio_url ?? json.data?.url
       if (!url) throw new Error('Missing audio URL from TTS response.')
       setAudioUrl(url)
       return true

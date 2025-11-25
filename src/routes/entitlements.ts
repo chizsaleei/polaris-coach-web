@@ -15,7 +15,7 @@ const router = Router()
 
 // Supabase admin client
 
-type SupabaseAdminClient = SupabaseClient<any>
+type SupabaseAdminClient = SupabaseClient<unknown>
 
 let adminClient: SupabaseAdminClient | null = null
 
@@ -32,7 +32,7 @@ function getSupabaseAdminClient(): SupabaseAdminClient {
     )
   }
 
-  adminClient = createClient<any>(urlEnv, serviceKeyEnv, {
+  adminClient = createClient<unknown>(urlEnv, serviceKeyEnv, {
     auth: { persistSession: false },
   })
 
@@ -91,11 +91,15 @@ export type EntitlementsSelfResponse = {
 
 // Utilities
 
+type ExpressRequestWithUser = Request & {
+  user?: { id?: unknown }
+}
+
 function getUserIdFromRequest(req: Request): string | null {
   const headerUser = req.header('x-user-id')
   if (headerUser && typeof headerUser === 'string') return headerUser
-  const anyReq = req as any
-  if (anyReq.user?.id && typeof anyReq.user.id === 'string') return anyReq.user.id
+  const authReq = req as ExpressRequestWithUser
+  if (authReq.user?.id && typeof authReq.user.id === 'string') return authReq.user.id
   return null
 }
 

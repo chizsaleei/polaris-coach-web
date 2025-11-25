@@ -154,7 +154,6 @@ export default function MicRecorder({
     }
   }
 
-  const busy = recording || uploading
   const minutes = Math.floor(elapsedSec / 60)
   const seconds = elapsedSec % 60
 
@@ -235,9 +234,15 @@ async function uploadBlob(blob: Blob): Promise<string> {
     throw new Error(msg)
   }
 
-  const json: any = await res.json()
-  const url: string | undefined = json?.data?.url
-  const headers: Record<string, string> | undefined = json?.data?.headers
+  type UploadSignedUrlResponse = {
+    data?: {
+      url?: string
+      headers?: Record<string, string>
+    }
+  }
+  const json: UploadSignedUrlResponse = await res.json()
+  const url: string | undefined = json.data?.url
+  const headers: Record<string, string> | undefined = json.data?.headers
 
   if (!url) {
     throw new Error('Upload URL missing from response.')
@@ -272,8 +277,12 @@ async function requestTranscript(url: string): Promise<string> {
     throw new Error(msg)
   }
 
-  const json: any = await res.json()
-  const text: string | undefined = json?.data?.text ?? json?.text
+  type TranscribeResponse = {
+    data?: { text?: string }
+    text?: string
+  }
+  const json: TranscribeResponse = await res.json()
+  const text: string | undefined = json.data?.text ?? json.text
   if (!text) throw new Error('Transcription returned no text.')
   return text
 }

@@ -60,6 +60,29 @@ type CoachAvatarMeta = {
   alt: string
 }
 
+type DrillRow = {
+  id: string
+  title: string
+  tags?: string[] | null
+  coach_key?: string | null
+  time_estimate_minutes?: number | null
+  difficulty?: number | null
+  created_at?: string | null
+}
+
+type ExploreSearchParams = {
+  coach?: string | string[]
+  topic?: string | string[]
+  difficultyMin?: string | string[]
+  difficultyMax?: string | string[]
+  fromDate?: string | string[]
+  [key: string]: string | string[] | undefined
+}
+
+type UserMetadata = {
+  full_name?: string | null
+}
+
 // Shared avatar map: coach key -> public/coach-assets/<coach-slug>/avatar-256.webp
 const COACH_AVATAR: Partial<Record<CoachKey, CoachAvatarMeta>> = {
   chase_krashen: {
@@ -441,7 +464,7 @@ async function loadDrills(filters: ExploreFilters): Promise<DrillSummary[]> {
   }
   if (filters.topics.length > 0) {
     // tags is an array column; contains() matches all provided tags
-    query = query.contains('tags' as any, filters.topics as any)
+    query = query.contains('tags', filters.topics)
   }
   if (filters.difficultyMin != null) {
     query = query.gte('difficulty', filters.difficultyMin)
@@ -462,7 +485,9 @@ async function loadDrills(filters: ExploreFilters): Promise<DrillSummary[]> {
     return []
   }
 
-  return (data ?? []).map((row: any) => ({
+  const rows: DrillRow[] = Array.isArray(data) ? (data as DrillRow[]) : []
+
+  return rows.map((row) => ({
     id: row.id,
     title: row.title,
     coachKey: row.coach_key ?? null,
@@ -473,7 +498,7 @@ async function loadDrills(filters: ExploreFilters): Promise<DrillSummary[]> {
   }))
 }
 
-function parseFilters(searchParams?: SearchParams): ExploreFilters {
+function parseFilters(searchParams?: ExploreSearchParams): ExploreFilters {
   const coachParam = searchParams?.coach
   const topicParam = searchParams?.topic
 
@@ -497,8 +522,8 @@ function parseFilters(searchParams?: SearchParams): ExploreFilters {
     .map((v) => v.trim())
     .filter(Boolean)
 
-  const difficultyMin = parseIntParam((searchParams as any)?.difficultyMin)
-  const difficultyMax = parseIntParam((searchParams as any)?.difficultyMax)
+  const difficultyMin = parseIntParam(searchParams?.difficultyMin)
+  const difficultyMax = parseIntParam(searchParams?.difficultyMax)
 
   const fromDateRaw =
     typeof searchParams?.fromDate === 'string' ? searchParams.fromDate : null
@@ -535,7 +560,8 @@ function formatNumber(value: number, fractionDigits = 0) {
 }
 
 function firstNameFromMetadata(meta: Record<string, unknown> | undefined): string {
-  const full = (meta as any)?.full_name as string | undefined
+  const userMeta = (meta ?? {}) as UserMetadata
+  const full = userMeta.full_name ?? undefined
   if (!full) return 'there'
   const first = full.split(' ')[0]
   return first || 'there'

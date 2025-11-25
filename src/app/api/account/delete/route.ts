@@ -71,8 +71,10 @@ export async function POST(req: NextRequest) {
       },
     );
 
-    const ok = (res as any).ok ?? true;
-    const job = ((res as any).job ?? null) as DeleteJob | null;
+    const ok = typeof res.ok === "boolean" ? res.ok : true;
+    const jobData = "job" in res ? res.job : null;
+    const job =
+      jobData && typeof jobData === "object" ? (jobData as DeleteJob) : null;
 
     return NextResponse.json(
       {

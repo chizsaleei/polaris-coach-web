@@ -32,7 +32,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
   const [status, setStatus] = useState<RealtimeStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [transcript, setTranscript] = useState<string>('')
-  const [lastMessage, setLastMessage] = useState<any>(null)
+  const [lastMessage, setLastMessage] = useState<unknown>(null)
 
   const connRef = useRef<RealtimeConn | null>(null)
 

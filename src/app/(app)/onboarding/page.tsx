@@ -327,7 +327,7 @@ function parseDomains(value: FormDataEntryValue | null): string[] {
 }
 
 function parsePriorities(values: FormDataEntryValue[]): QuizAnswers['priorities'] {
-  const allowed: QuizAnswers['priorities'][number][] = [
+  const allowed: readonly QuizAnswers['priorities'][number][] = [
     'fluency',
     'interview',
     'exam',
@@ -343,7 +343,7 @@ function parsePriorities(values: FormDataEntryValue[]): QuizAnswers['priorities'
   const out: QuizAnswers['priorities'] = []
   for (const v of values) {
     if (typeof v !== 'string') continue
-    if (allowedSet.has(v as any) && out.length < 3) {
+    if (allowedSet.has(v as QuizAnswers['priorities'][number]) && out.length < 3) {
       out.push(v as QuizAnswers['priorities'][number])
     }
   }
@@ -358,8 +358,13 @@ function parseDifficulty(value: FormDataEntryValue | null): QuizAnswers['difficu
   return clamped as QuizAnswers['difficulty']
 }
 
+type UserMetadata = {
+  full_name?: string | null
+}
+
 function firstNameFromMetadata(meta: Record<string, unknown> | undefined): string {
-  const full = (meta as any)?.full_name as string | undefined
+  const userMeta = (meta ?? {}) as UserMetadata
+  const full = userMeta.full_name ?? undefined
   if (!full) return 'there'
   const first = full.split(' ')[0]
   return first || 'there'

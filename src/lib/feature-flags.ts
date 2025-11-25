@@ -103,9 +103,7 @@ export function clearLocalFlag(name: FlagName): void {
   try {
     window.localStorage.removeItem(LS_PREFIX + name)
     refreshFlags()
-    window.dispatchEvent(
-      new StorageEvent('storage', { key: LS_PREFIX + name, newValue: null as any }),
-    )
+    window.dispatchEvent(new StorageEvent('storage', { key: LS_PREFIX + name, newValue: null }))
   } catch {
     /* ignore */
   }

@@ -49,10 +49,15 @@ function joinUrl(base: string, path: string): string {
   return base + path
 }
 
+type RandomUuidSource = { randomUUID?: () => string }
+
 function makeRequestId(): string {
   try {
-    // @ts-ignore global crypto in Node 18+ or Web Crypto
-    if (typeof crypto !== 'undefined' && crypto?.randomUUID) return crypto.randomUUID()
+    const cryptoObj =
+      (typeof globalThis === 'object' &&
+        (globalThis as typeof globalThis & { crypto?: RandomUuidSource }).crypto) ||
+      undefined
+    if (cryptoObj?.randomUUID) return cryptoObj.randomUUID()
   } catch {}
   return `req_${Math.random().toString(36).slice(2)}${Date.now()}`
 }
@@ -114,7 +119,7 @@ export async function coreFetch<T = unknown>(path: string, opts: CoreFetchOption
   const isJson = contentType.includes('application/json')
 
   if (!res.ok) {
-    let payload: any = undefined
+    let payload: unknown = undefined
     try {
       payload = isJson ? await res.json() : await res.text()
     } catch {
@@ -133,8 +138,8 @@ export async function coreFetch<T = unknown>(path: string, opts: CoreFetchOption
 
   if (!isJson) {
     // Allow non JSON for edge cases
-    // @ts-ignore
-    return (await res.text()) as T
+    const text = await res.text()
+    return text as unknown as T
   }
   return res.json() as Promise<T>
 }

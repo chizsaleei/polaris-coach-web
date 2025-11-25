@@ -46,7 +46,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let json: any;
+    type RealtimeTokenResponse = {
+      ok?: boolean
+      data?: {
+        client_secret?: unknown
+        model?: string | null
+        [key: string]: unknown
+      }
+      [key: string]: unknown
+    }
+
+    let json: RealtimeTokenResponse
     try {
       json = JSON.parse(text);
     } catch {
@@ -63,7 +73,7 @@ export async function GET(request: NextRequest) {
     const clientSecret = json?.data?.client_secret;
     const model = json?.data?.model;
 
-    if (!clientSecret || typeof clientSecret?.value !== "string") {
+    if (!isClientSecretPayload(clientSecret)) {
       return NextResponse.json(
         {
           ok: false,
@@ -104,4 +114,9 @@ function requireEnv(name: string) {
     throw new Error(`Missing environment variable ${name} for realtime token route`);
   }
   return value;
+}
+
+function isClientSecretPayload(value: unknown): value is { value: string } {
+  if (!value || typeof value !== "object") return false;
+  return typeof (value as { value?: unknown }).value === "string";
 }

@@ -16,33 +16,6 @@ const router = Router()
 // Supabase admin client
 
 type JsonRecord = Record<string, unknown>
-type SupabaseAdminClient = SupabaseClient<any>
-
-let adminClient: SupabaseAdminClient | null = null
-
-function getSupabaseAdminClient(): SupabaseAdminClient {
-  if (adminClient) return adminClient
-
-  const urlEnv = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKeyEnv =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
-
-  if (!urlEnv || !serviceKeyEnv) {
-    throw new Error(
-      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY for Supabase admin client',
-    )
-  }
-
-  adminClient = createClient<any>(urlEnv, serviceKeyEnv, {
-    auth: { persistSession: false },
-  })
-
-  return adminClient
-}
-
-// Types
-
-type TierName = 'free' | 'pro' | 'vip'
 
 type EntitlementRow = {
   id: string
@@ -68,6 +41,54 @@ type PaymentEventRow = {
   created_at: string
   meta?: JsonRecord | null
 }
+
+type TableDef<Row> = {
+  Row: Row
+  Insert: Row
+  Update: Partial<Row>
+  Relationships: []
+}
+
+type Database = {
+  public: {
+    Tables: {
+      entitlements: TableDef<EntitlementRow>
+      payments_events: TableDef<PaymentEventRow>
+    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
+  }
+}
+
+type SupabaseAdminClient = SupabaseClient<Database>
+
+let adminClient: SupabaseAdminClient | null = null
+
+function getSupabaseAdminClient(): SupabaseAdminClient {
+  if (adminClient) return adminClient
+
+  const urlEnv = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKeyEnv =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+
+  if (!urlEnv || !serviceKeyEnv) {
+    throw new Error(
+      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY for Supabase admin client',
+    )
+  }
+
+  adminClient = createClient<Database>(urlEnv, serviceKeyEnv, {
+    auth: { persistSession: false },
+  })
+
+  return adminClient
+}
+
+// Types
+
+type TierName = 'free' | 'pro' | 'vip'
 
 type SubscriptionSummary = {
   userId: string
@@ -98,11 +119,15 @@ export type SubscriptionSummaryResponse = {
 
 // Helpers
 
+type ExpressRequestWithUser = Request & {
+  user?: { id?: unknown }
+}
+
 function getUserIdFromRequest(req: Request): string | null {
   const headerUser = req.header('x-user-id')
   if (headerUser && typeof headerUser === 'string') return headerUser
-  const anyReq = req as any
-  if (anyReq.user?.id && typeof anyReq.user.id === 'string') return anyReq.user.id
+  const authReq = req as ExpressRequestWithUser
+  if (authReq.user?.id && typeof authReq.user.id === 'string') return authReq.user.id
   return null
 }
 
@@ -127,7 +152,7 @@ async function loadLatestEntitlement(userId: string): Promise<EntitlementRow | n
     .limit(1)
     .maybeSingle()
 
-  if (error && (error as any).code !== 'PGRST116') {
+  if (error && error.code !== 'PGRST116') {
     log.warn('subscriptions_entitlement_load_failed', {
       userId,
       error: error.message,

@@ -469,13 +469,6 @@ async function fetchSearch(
   }
 }
 
-function firstNameFromMetadata(meta: Record<string, unknown> | undefined): string {
-  const full = (meta as any)?.full_name as string | undefined
-  if (!full) return 'there'
-  const first = full.split(' ')[0]
-  return first || 'there'
-}
-
 function formatDate(value?: string | null) {
   if (!value) return ''
   try {

@@ -81,9 +81,62 @@ type CoachAvatarMeta = {
   name: string
 }
 
+type ProfileRow = {
+  id?: string
+  full_name?: string | null
+  avatar_url?: string | null
+  tier?: string | null
+  active_coach_key?: string | null
+  created_at?: string | null
+}
+
+type EntitlementRow = {
+  plan?: string | null
+  status?: string | null
+  provider?: string | null
+  ends_at?: string | null
+  cancel_at?: string | null
+}
+
+type ProgressRow = {
+  minutes_7d?: number | null
+  attempts_7d?: number | null
+  attempts_all?: number | null
+  days_active_7d?: number | null
+  avg_score_28d?: number | null
+  avg_wpm_28d?: number | null
+  pass_rate_28d?: number | null
+  last_activity_at?: string | null
+  top_coach_id_28d?: string | null
+  top_topic_28d?: string | null
+  tier_current?: string | null
+  active_coach_id?: string | null
+  user_created_at?: string | null
+  full_name?: string | null
+}
+
+type SessionRow = {
+  id: string
+  coach_key?: string | null
+  started_at: string
+  ended_at?: string | null
+  duration_sec?: number | null
+  score?: number | null
+  words_per_minute?: number | null
+}
+
+type DrillRow = {
+  id: string
+  title: string
+  tags?: string[] | null
+  coach_key?: string | null
+  time_estimate_minutes?: number | null
+  difficulty?: number | null
+}
+
 // Shared map: CoachKey -> avatar in public/coach-assets/<coach-slug>/avatar-256.webp
 // Supports both snake_case keys and kebab-case slugs for robustness.
-export const COACH_AVATAR: Record<string, CoachAvatarMeta> = {
+const COACH_AVATAR: Record<string, CoachAvatarMeta> = {
   // Chase Krashen
   chase_krashen: {
     src: "/coach-assets/chase-krashen/avatar-256.webp",
@@ -260,23 +313,26 @@ async function loadDashboardSnapshot(
   logPostgrestError("sessions", sessionsRes.error)
   logPostgrestError("drills", drillsRes.error)
 
-  const profile = mapProfile(
-    profileRes.data,
-    progressRes.data,
-    userId,
-    fallbackName,
+  const profileRow = (profileRes.data as ProfileRow | null) ?? null
+  const progressRow = (progressRes.data as ProgressRow | null) ?? null
+  const entitlementRow = (entitlementRes.data as EntitlementRow | null) ?? null
+
+  const profile = mapProfile(profileRow, progressRow, userId, fallbackName)
+  const entitlement = mapEntitlement(entitlementRow)
+  const progress = mapProgress(progressRow)
+  const sessions = mapSessions(
+    Array.isArray(sessionsRes.data) ? (sessionsRes.data as SessionRow[]) : [],
   )
-  const entitlement = mapEntitlement(entitlementRes.data)
-  const progress = mapProgress(progressRes.data)
-  const sessions = mapSessions(sessionsRes.data ?? [])
-  const drills = mapDrills(drillsRes.data ?? [])
+  const drills = mapDrills(
+    Array.isArray(drillsRes.data) ? (drillsRes.data as DrillRow[]) : [],
+  )
 
   return { profile, entitlement, progress, sessions, drills }
 }
 
 function mapProfile(
-  row: any,
-  progressRow: any,
+  row: ProfileRow | null,
+  progressRow: ProgressRow | null,
   userId: string,
   fallbackName?: string | null,
 ): ProfileSummary {
@@ -295,17 +351,17 @@ function mapProfile(
   }
 }
 
-function mapEntitlement(row: any): EntitlementSummary {
+function mapEntitlement(row: EntitlementRow | null): EntitlementSummary {
   if (!row) return null
   return {
-    plan: normalizeTier(row.plan),
+    plan: normalizeTier(row.plan ?? undefined),
     status: row.status ?? null,
     provider: row.provider ?? null,
     expiresAt: row.cancel_at ?? row.ends_at ?? null,
   }
 }
 
-function mapProgress(row: any): ProgressSnapshot {
+function mapProgress(row: ProgressRow | null): ProgressSnapshot {
   return {
     minutes7d: numberOrZero(row?.minutes_7d),
     attempts7d: numberOrZero(row?.attempts_7d),
@@ -320,7 +376,7 @@ function mapProgress(row: any): ProgressSnapshot {
   }
 }
 
-function mapSessions(rows: any[]): SessionSummary[] {
+function mapSessions(rows: SessionRow[]): SessionSummary[] {
   return rows.map((row) => ({
     id: row.id,
     coachKey: row.coach_key ?? null,
@@ -331,7 +387,7 @@ function mapSessions(rows: any[]): SessionSummary[] {
   }))
 }
 
-function mapDrills(rows: any[]): DrillSummary[] {
+function mapDrills(rows: DrillRow[]): DrillSummary[] {
   return rows.map((row) => ({
     id: row.id,
     title: row.title,

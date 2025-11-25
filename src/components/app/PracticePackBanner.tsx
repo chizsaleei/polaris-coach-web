@@ -36,14 +36,18 @@ export default async function PracticePackBanner() {
   let pack: WeeklyPack | null = null
 
   try {
-    const res = await coreGet<WeeklyPackResponse | WeeklyPack>('/api/practice-pack/weekly', {
+    type PracticePackResult = WeeklyPackResponse | WeeklyPack
+    const res = await coreGet<PracticePackResult>('/api/practice-pack/weekly', {
       authBearer: session.access_token,
       cache: 'no-store',
     })
 
-    const body = res as any
     // Support both wrapped { ok, data } and raw WeeklyPack shapes
-    pack = body?.data ?? (body && body.week_of ? (body as WeeklyPack) : null)
+    if ('data' in res && res.data) {
+      pack = res.data
+    } else if ('week_of' in res) {
+      pack = res
+    }
   } catch (error) {
     log.warn('weekly_pack_fetch_failed', {
       error: error instanceof Error ? error.message : String(error),

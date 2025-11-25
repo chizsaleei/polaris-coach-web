@@ -1,4 +1,4 @@
-import { log } from "../logger";
+import { logger } from "../logger";
 
 const SUPPORTED_CURRENCIES = [
   "USD",
@@ -84,7 +84,7 @@ function normalizeCurrency(value: string): Currency {
   if (SUPPORTED_SET.has(upper)) {
     return upper as Currency;
   }
-  log.warn("Unsupported currency requested. Falling back to USD.", { currency: value });
+  logger.warn("Unsupported currency requested. Falling back to USD.", { currency: value });
   return "USD";
 }
 
@@ -93,7 +93,7 @@ export function currencyForCountry(country?: string): Currency {
   const code = country.trim().toUpperCase();
   const mapped = COUNTRY_TO_CURRENCY[code];
   if (!mapped) {
-    log.warn("Unsupported country for currency mapping", { country: code });
+    logger.warn("Unsupported country for currency mapping", { country: code });
     return DEFAULT_CURRENCY;
   }
   return mapped;

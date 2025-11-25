@@ -4,10 +4,10 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /**
- * If you later generate typed Supabase definitions, you can replace `any`
+ * If you later generate typed Supabase definitions, you can replace `unknown`
  * with your Database type here.
  */
-type TypedSupabaseClient = SupabaseClient<any>
+type TypedSupabaseClient = SupabaseClient<unknown>
 
 let _client: TypedSupabaseClient | null = null
 
@@ -27,6 +27,6 @@ export function getSupabaseBrowserClient(): TypedSupabaseClient {
     )
   }
 
-  _client = createClient(url, anon)
+  _client = createClient<unknown>(url, anon)
   return _client
 }

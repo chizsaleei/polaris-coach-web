@@ -17,31 +17,6 @@ const router = Router()
 // Supabase admin client
 
 type JsonRecord = Record<string, unknown>
-type SupabaseAdminClient = SupabaseClient<any>
-
-let adminClient: SupabaseAdminClient | null = null
-
-function getSupabaseAdminClient(): SupabaseAdminClient {
-  if (adminClient) return adminClient
-
-  const urlEnv = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKeyEnv =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
-
-  if (!urlEnv || !serviceKeyEnv) {
-    throw new Error(
-      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY for Supabase admin client',
-    )
-  }
-
-  adminClient = createClient<any>(urlEnv, serviceKeyEnv, {
-    auth: { persistSession: false },
-  })
-
-  return adminClient
-}
-
-// Types
 
 type ProviderId = 'paypal' | 'paymongo'
 
@@ -89,6 +64,61 @@ type PaymentEventPayload = {
   meta?: JsonRecord
 }
 
+type PaymentEventRow = {
+  event_type: PaymentEventName
+  provider: ProviderId | null
+  user_id: string | null
+  plan: string | null
+  amount_minor: number | null
+  currency: string | null
+  meta: JsonRecord
+}
+
+type TableDef<Row> = {
+  Row: Row
+  Insert: Row
+  Update: Partial<Row>
+  Relationships: []
+}
+
+type Database = {
+  public: {
+    Tables: {
+      profiles: TableDef<ProfileRow>
+      entitlements: TableDef<EntitlementRow>
+      payments_events: TableDef<PaymentEventRow>
+    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
+  }
+}
+
+type SupabaseAdminClient = SupabaseClient<Database>
+
+let adminClient: SupabaseAdminClient | null = null
+
+function getSupabaseAdminClient(): SupabaseAdminClient {
+  if (adminClient) return adminClient
+
+  const urlEnv = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKeyEnv =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+
+  if (!urlEnv || !serviceKeyEnv) {
+    throw new Error(
+      'Missing SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY for Supabase admin client',
+    )
+  }
+
+  adminClient = createClient<Database>(urlEnv, serviceKeyEnv, {
+    auth: { persistSession: false },
+  })
+
+  return adminClient
+}
+
 type CheckoutSessionResult = {
   url: string
   providerSessionId?: string | null
@@ -125,11 +155,15 @@ const portalSchema = z.object({
 
 // Utilities
 
+type ExpressRequestWithUser = Request & {
+  user?: { id?: unknown }
+}
+
 function getUserIdFromRequest(req: Request): string | null {
   const headerUser = req.header('x-user-id')
   if (headerUser && typeof headerUser === 'string') return headerUser
-  const anyReq = req as any
-  if (anyReq.user?.id && typeof anyReq.user.id === 'string') return anyReq.user.id
+  const authReq = req as ExpressRequestWithUser
+  if (authReq.user?.id && typeof authReq.user.id === 'string') return authReq.user.id
   return null
 }
 
@@ -198,8 +232,8 @@ async function loadProfileAndEntitlement(userId: string) {
     })
   }
 
-  const profile = (profileRes.data as ProfileRow | null) ?? null
-  const entitlement = (entitlementRes.data as EntitlementRow | null) ?? null
+  const profile = profileRes.data ?? null
+  const entitlement = entitlementRes.data ?? null
 
   return { profile, entitlement }
 }
@@ -216,6 +250,7 @@ async function paypalCreateCheckoutSession(input: {
   affiliateCode?: string | null
   meta?: JsonRecord
 }): Promise<CheckoutSessionResult> {
+  void input
   throw new Error(
     'PayPal checkout not implemented. Wire paypalCreateCheckoutSession() to PayPal API.',
   )
@@ -231,6 +266,7 @@ async function paymongoCreateCheckoutSession(input: {
   affiliateCode?: string | null
   meta?: JsonRecord
 }): Promise<CheckoutSessionResult> {
+  void input
   throw new Error(
     'PayMongo checkout not implemented. Wire paymongoCreateCheckoutSession() to PayMongo API.',
   )
@@ -241,6 +277,7 @@ async function paypalCreatePortalSession(input: {
   returnUrl: string
   meta?: JsonRecord
 }): Promise<PortalSessionResult> {
+  void input
   throw new Error('PayPal portal not implemented. Wire paypalCreatePortalSession() to PayPal API.')
 }
 
@@ -249,6 +286,7 @@ async function paymongoCreatePortalSession(input: {
   returnUrl: string
   meta?: JsonRecord
 }): Promise<PortalSessionResult> {
+  void input
   throw new Error(
     'PayMongo portal not implemented. Wire paymongoCreatePortalSession() to PayMongo API.',
   )

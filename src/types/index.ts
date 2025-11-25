@@ -15,7 +15,7 @@ export interface JSONObject {
   [k: string]: JSONValue
 }
 
-export interface JSONArray extends Array<JSONValue> {}
+export type JSONArray = JSONValue[]
 
 // ---------- Public env (frontend only)
 

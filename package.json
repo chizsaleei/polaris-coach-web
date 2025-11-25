@@ -10,12 +10,12 @@
   "packageManager": "npm@10.9.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/polaris-coach-web.git"
+    "url": "https://github.com/chizsaleei/polaris-coach-web.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/polaris-coach-web/issues"
+    "url": "https://github.com/chizsaleei/polaris-coach-web/issues"
   },
-  "homepage": "https://your-site.example",
+  "homepage": "https://github.com/chizsaleei/polaris-coach-web",
   "type": "module",
   "scripts": {
     "dev": "next dev -p 3000",
@@ -48,9 +48,10 @@
     "@types/react-dom": "^18.2.17",
     "autoprefixer": "^10.4.20",
     "concurrently": "9.2.1",
-    "eslint": "9.39.1",
-    "eslint-config-next": "16.0.3",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.13",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-n": "16.6.0",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",

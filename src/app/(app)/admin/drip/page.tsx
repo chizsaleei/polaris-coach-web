@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 
 import { getSupabaseServerClient, requireUser } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
@@ -38,6 +39,34 @@ type DripCampaign = {
   clickRate30d: number | null
   churnRate30d: number | null
 }
+
+type DripCampaignRow = {
+  id: string
+  campaign_key?: string | null
+  key?: string | null
+  slug?: string | null
+  name?: string | null
+  description?: string | null
+  status?: string | null
+  trigger_kind?: string | null
+  audience_key?: string | null
+  channel?: string | null
+  created_at: string
+  updated_at?: string | null
+  last_run_at?: string | null
+  emails_sent_24h?: number | null
+  emails_sent_30d?: number | null
+  open_rate_30d?: number | null
+  click_rate_30d?: number | null
+  churn_rate_30d?: number | null
+}
+
+type AdminUser =
+  | Pick<User, 'app_metadata' | 'user_metadata'>
+  | {
+      app_metadata?: Record<string, unknown> | null
+      user_metadata?: Record<string, unknown> | null
+    }
 
 type DripSummary = {
   totalCampaigns: number
@@ -294,7 +323,9 @@ async function loadDripCampaigns(): Promise<DripCampaign[]> {
 
   if (!data) return []
 
-  return data.map((row: any): DripCampaign => ({
+  const rows: unknown[] = Array.isArray(data) ? data : []
+
+  return rows.filter(isDripCampaignRow).map((row) => ({
     id: row.id,
     key: row.campaign_key ?? row.key ?? row.slug ?? row.id,
     name: row.name ?? row.campaign_key ?? 'Untitled campaign',
@@ -441,7 +472,7 @@ function formatChannel(channel: DripChannel): string {
   }
 }
 
-function isAdminUser(user: any): boolean {
+function isAdminUser(user: AdminUser | null): boolean {
   const appMeta = (user?.app_metadata ?? {}) as Record<string, unknown>
   const userMeta = (user?.user_metadata ?? {}) as Record<string, unknown>
 
@@ -511,4 +542,10 @@ function relativeTimeFromNow(value: string): string {
 function isMissingRelation(error?: { message?: string }) {
   const msg = (error?.message || '').toLowerCase()
   return msg.includes('does not exist') || msg.includes('missing')
+}
+
+function isDripCampaignRow(row: unknown): row is DripCampaignRow {
+  if (!row || typeof row !== 'object' || Array.isArray(row)) return false
+  const candidate = row as Record<string, unknown>
+  return typeof candidate.id === 'string' && typeof candidate.created_at === 'string'
 }

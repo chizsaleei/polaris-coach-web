@@ -53,15 +53,17 @@ export default async function CoachSwitchNotice() {
   let caps: Capabilities | null = null
 
   try {
-    const res = await coreGet<{ ok?: boolean; data?: Capabilities } | Capabilities>(
-      '/api/user/capabilities',
-      {
-        authBearer: session.access_token,
-        cache: 'no-store',
-      },
-    )
-    const body = res as any
-    caps = body?.data ?? (body && body.tier ? (body as Capabilities) : null)
+    type CapabilitiesResponse = { ok?: boolean; data?: Capabilities | null } | Capabilities
+    const res = await coreGet<CapabilitiesResponse>('/api/user/capabilities', {
+      authBearer: session.access_token,
+      cache: 'no-store',
+    })
+
+    if ('data' in res && res.data) {
+      caps = res.data
+    } else if ('tier' in res) {
+      caps = res
+    }
   } catch (error) {
     log.warn('capabilities_fetch_failed', {
       error: error instanceof Error ? error.message : String(error),

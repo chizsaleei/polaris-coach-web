@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-type EdgeSupabaseClient = SupabaseClient<any>;
+type EdgeSupabaseClient = SupabaseClient<unknown>;
 
 /**
  * Build a Supabase client for Edge Middleware or edge route handlers.
@@ -27,7 +27,7 @@ export function getSupabaseForMiddleware(req: NextRequest) {
     req.cookies.get("supabase-auth-token")?.value ||
     undefined;
 
-  const supabase = createClient<any>(url, anonKey, {
+  const supabase = createClient<unknown>(url, anonKey, {
     global: {
       headers: accessToken
         ? { Authorization: `Bearer ${accessToken}` }

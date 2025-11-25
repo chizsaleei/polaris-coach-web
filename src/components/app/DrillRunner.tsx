@@ -122,12 +122,20 @@ export default function DrillRunner({
           throw new Error(text || `Drill feedback failed (${res.status})`)
         }
 
-        const data: any = await res.json()
+        type ChatResponse = {
+          reply?: string
+          content?: string
+          message?: string
+          choices?: Array<{ message?: { content?: string } }>
+          [key: string]: unknown
+        }
+
+        const data: ChatResponse = await res.json()
         const replyText =
-          data?.reply ||
-          data?.content ||
-          data?.message ||
-          data?.choices?.[0]?.message?.content ||
+          data.reply ||
+          data.content ||
+          data.message ||
+          data.choices?.[0]?.message?.content ||
           ''
 
         if (!replyText) {

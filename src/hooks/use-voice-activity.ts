@@ -143,7 +143,15 @@ export function useVoiceActivity(
 
     try {
       const AudioContextCtor =
-        window.AudioContext || (window as any).webkitAudioContext
+        window.AudioContext ||
+        (window as Window & {
+          webkitAudioContext?: typeof AudioContext
+        }).webkitAudioContext
+
+      if (!AudioContextCtor) {
+        throw new Error('AudioContext not supported')
+      }
+
       audioContext = new AudioContextCtor()
       sourceNode = audioContext.createMediaStreamSource(stream)
       analyserNode = audioContext.createAnalyser()

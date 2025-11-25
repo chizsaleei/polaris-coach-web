@@ -13,8 +13,6 @@ type LiveCoachPanelProps = {
 }
 
 export default function LiveCoachPanel({
-  userId, // reserved for future analytics / session tokens
-  userName,
   coachLabel,
 }: LiveCoachPanelProps) {
   const [stream, setStream] = useState<MediaStream | null>(null)

@@ -76,9 +76,7 @@ export default function CardSaveButton({
 
       if (!res.ok) {
         const data = await safeJson(res)
-        const msg =
-          (data && typeof (data as any).error === 'string' && (data as any).error) ||
-          `Request failed: ${res.status}`
+        const msg = (isSaveErrorResponse(data) && data.error) || `Request failed: ${res.status}`
         throw new Error(msg)
       }
 
@@ -130,10 +128,21 @@ export default function CardSaveButton({
   )
 }
 
-async function safeJson(res: Response) {
+async function safeJson(res: Response): Promise<unknown> {
   try {
     return await res.json()
   } catch {
     return null
   }
+}
+
+type SaveErrorResponse = {
+  error?: string
+  message?: string
+}
+
+function isSaveErrorResponse(value: unknown): value is SaveErrorResponse {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Record<string, unknown>
+  return typeof candidate.error === 'string'
 }

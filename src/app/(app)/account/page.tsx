@@ -81,6 +81,8 @@ export default async function AccountPage({ searchParams }: { searchParams?: Sea
     overview.stats.lastPracticeAt &&
     formatDate(overview.stats.lastPracticeAt, { dateStyle: 'medium', timeStyle: 'short' })
   const billingError = getFlag(searchParams, 'billingError')
+  const metadataFullName =
+    typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : undefined
 
   const activeCoachKeyRaw = overview.profile?.active_coach_key ?? null
   const activeCoachKey: CoachKey | null =
@@ -112,7 +114,7 @@ export default async function AccountPage({ searchParams }: { searchParams?: Sea
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Account</p>
             <h1 className="mt-2 text-3xl font-semibold text-slate-900">
               {overview.profile?.full_name ||
-                (user.user_metadata as any)?.full_name ||
+                metadataFullName ||
                 'Your Polaris Coach'}
             </h1>
             <p className="mt-2 text-slate-600">
@@ -422,7 +424,7 @@ async function loadAccountOverview(
   const stats: AccountStats = {
     attempts: attemptsRes.count ?? 0,
     expressions: expressionsRes.count ?? 0,
-    lastPracticeAt: lastAttemptRes.data?.created_at ?? null,
+    lastPracticeAt: getCreatedAt(lastAttemptRes.data),
   }
 
   return { profile, entitlement, stats }
@@ -504,4 +506,10 @@ function makeAbsoluteUrl(path: string) {
   const trimmedBase = normalizedBase.replace(/\/$/, '')
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
   return `${trimmedBase}${normalizedPath}`
+}
+
+function getCreatedAt(row: unknown): string | null {
+  if (!row || typeof row !== 'object') return null
+  const value = (row as { created_at?: unknown }).created_at
+  return typeof value === 'string' ? value : null
 }

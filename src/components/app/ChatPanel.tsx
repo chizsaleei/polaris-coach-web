@@ -97,7 +97,7 @@ export default function ChatPanel({ userId, userName, starterPrompts = [] }: Cha
           createdAt: Date.now(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("[chat] send failed", err);
         setError(err instanceof Error ? err.message : "Unable to send message.");
         setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));

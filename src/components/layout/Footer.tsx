@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -119,13 +120,13 @@ export default function Footer() {
                 className="flex items-center justify-center rounded-full bg-white/70 p-3 shadow transition hover:scale-105 hover:bg-white dark:bg-slate-800/70 dark:hover:bg-slate-700"
                 aria-label={contact.aria}
               >
-                <img
+                <Image
                   src={contact.icon}
                   alt={`${contact.label} icon`}
                   className="h-12 w-12 sm:h-8 sm:w-8 object-contain"
-                  loading="lazy"
                   width={48}
                   height={48}
+                  loading="lazy"
                 />
               </button>
             ))}
@@ -153,10 +154,13 @@ export default function Footer() {
             </button>
 
             <div className="flex items-center gap-3">
-              <img
-                src={contacts.find((c) => c.label === openContact)?.icon}
+              <Image
+                src={contacts.find((c) => c.label === openContact)?.icon ?? "/icons/email.png"}
                 alt=""
                 className="h-12 w-12 sm:h-8 sm:w-8 object-contain"
+                width={48}
+                height={48}
+                loading="lazy"
               />
               <div>
                 <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">

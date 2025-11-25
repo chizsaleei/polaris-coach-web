@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout);
 
     const text = await res.text();
-    let data: any = null;
+    let data: CoreResponseBody = null;
     try {
       data = text ? JSON.parse(text) : null;
     } catch {
@@ -73,8 +73,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 200 });
-  } catch (err: any) {
-    const msg = err?.name === "AbortError" ? "upstream timeout" : String(err?.message || err);
+  } catch (err) {
+    const error = err as Error & { name?: string }
+    const msg = error?.name === "AbortError" ? "upstream timeout" : String(error?.message || err)
     return NextResponse.json({ error: "proxy_error", message: msg }, { status: 500 });
   }
 }
@@ -94,21 +95,40 @@ async function getUserId(): Promise<string | null> {
   }
 }
 
-async function safeJson(req: NextRequest): Promise<any> {
+type RequestBody = {
+  count?: ClampInput
+  lru?: unknown
+  lastSelectedId?: unknown
+  filters?: FiltersInput | null
+}
+
+async function safeJson(req: NextRequest): Promise<RequestBody> {
   try {
-    return await req.json();
+    return (await req.json()) as RequestBody
   } catch {
-    return {};
+    return {}
   }
 }
 
-function clampInt(v: any, min: number, max: number, d: number): number {
+type ClampInput = number | string | null | undefined
+
+function clampInt(v: ClampInput, min: number, max: number, d: number): number {
   const n = Number.parseInt(String(v ?? ""), 10);
   if (!Number.isFinite(n)) return d;
   return Math.max(min, Math.min(max, n));
 }
 
-function normalizeFilters(f: any) {
+type FiltersInput = {
+  coach?: unknown
+  topic?: unknown
+  skill?: unknown
+  format?: unknown
+  difficultyMin?: ClampInput
+  difficultyMax?: ClampInput
+  language?: unknown
+}
+
+function normalizeFilters(f: FiltersInput | null | undefined) {
   return {
     coach: arr(f?.coach, 10),
     topic: arr(f?.topic, 10),
@@ -120,6 +140,11 @@ function normalizeFilters(f: any) {
   } as const;
 }
 
-function arr(v: any, max = 20) {
+type CoreResponseBody =
+  | null
+  | Record<string, unknown>
+  | { raw: string }
+
+function arr(v: unknown, max = 20) {
   return Array.isArray(v) ? v.filter(Boolean).slice(0, max) : undefined;
 }
