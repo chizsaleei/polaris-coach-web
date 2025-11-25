@@ -1,0 +1,12 @@
+{
+  "root": true,
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript",
+    "prettier"
+  ],
+  "plugins": ["n"],
+  "rules": {
+    "n/no-process-exit": "error"
+  }
+}

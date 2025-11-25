@@ -1,0 +1,20 @@
+function firstString(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const str = firstString(item);
+      if (str) return str;
+    }
+    return undefined;
+  }
+  if (value == null) return undefined;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean" || value instanceof Date) {
+    const str = String(value).trim();
+    return str.length ? str : undefined;
+  }
+  return undefined;
+  return str.length ? str : undefined;
+}
+
+function parseBoolean(value: string | undefined): boolean {
+  if (!value) return false;
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
