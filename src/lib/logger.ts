@@ -71,6 +71,11 @@ function consoleForLevel(level: Level): (...args: unknown[]) => void {
   return console.error.bind(console)
 }
 
+type SentryBridge = {
+  captureMessage?: (message: string, options?: { level?: Level; extra?: Record<string, unknown> }) => void
+  captureException?: (error: unknown, options?: { extra?: Record<string, unknown> }) => void
+}
+
 export type Logger = {
   level: Level
   debug: (msg: string, meta?: unknown) => void
@@ -102,10 +107,9 @@ export function createLogger(namespace = 'app', level: Level = DEFAULT_LEVEL): L
     consoleForLevel(levelToUse)(line)
 
     // Optional Sentry relay if available
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const S = (globalThis as any).Sentry
+    const S = (globalThis as typeof globalThis & { Sentry?: SentryBridge }).Sentry
     if (S && typeof S.captureMessage === 'function') {
-      if (levelToUse === 'error' && err) {
+      if (levelToUse === 'error' && err && typeof S.captureException === 'function') {
         try {
           S.captureException(err, { extra: entry })
         } catch {
