@@ -23,7 +23,6 @@ export default function SignOutButton({ className, children }: Props) {
         window.location.href = '/login'
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('sign out failed', err)
       setBusy(false)
     }

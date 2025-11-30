@@ -19,29 +19,26 @@ export default function GoogleSignInButton({ className, children, nextPath = '/d
     setBusy(true)
     try {
       const supabase = getSupabaseBrowserClient()
-      const origin =
-        typeof window !== 'undefined'
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_APP_BASE_URL
-      const callback = origin ? new URL('/auth/callback', origin) : null
-
-      if (callback) {
-        const next = nextPath.startsWith('/') ? nextPath : '/dashboard'
-        callback.searchParams.set('next', next)
+      if (typeof window === 'undefined') {
+        setBusy(false)
+        return
       }
+
+      const origin = window.location.origin
+      const callback = new URL('/auth/callback', origin)
+      const next = nextPath.startsWith('/') ? nextPath : '/dashboard'
+      callback.searchParams.set('next', next)
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: callback?.toString() },
+        options: { redirectTo: callback.toString() },
       })
 
       if (error) {
-        // eslint-disable-next-line no-console
         console.error('google sign-in error', error)
         setBusy(false)
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('google sign-in failed', err)
       setBusy(false)
     }

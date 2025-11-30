@@ -1,6 +1,7 @@
 // src/lib/supabase/middleware.ts
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type EdgeSupabaseClient = SupabaseClient<unknown>;
 
@@ -11,34 +12,8 @@ type EdgeSupabaseClient = SupabaseClient<unknown>;
  */
 export function getSupabaseForMiddleware(req: NextRequest) {
   const res = NextResponse.next();
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY for Supabase edge client",
-    );
-  }
-
-  // Common cookie names used by Supabase auth helpers.
-  const accessToken =
-    req.cookies.get("sb-access-token")?.value ||
-    req.cookies.get("supabase-auth-token")?.value ||
-    undefined;
-
-  const supabase = createClient<unknown>(url, anonKey, {
-    global: {
-      headers: accessToken
-        ? { Authorization: `Bearer ${accessToken}` }
-        : {},
-    },
-    auth: {
-      persistSession: false,
-    },
-  });
-
-  return { supabase, res, accessToken };
+  const supabase = createMiddlewareClient<unknown>({ req, res });
+  return { supabase, res };
 }
 
 /**
@@ -66,16 +41,13 @@ export async function protectEdgePath(
   const needsAuth = prefixes.some((p) => url.pathname.startsWith(p));
   if (!needsAuth) return NextResponse.next();
 
-  const { supabase, res, accessToken } = getSupabaseForMiddleware(req);
+  const { supabase, res } = getSupabaseForMiddleware(req);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  // No access token means no authenticated user.
-  if (!accessToken) {
-    return NextResponse.redirect(buildLoginRedirect(req, url));
-  }
-
-  const { data, error } = await supabase.auth.getUser(accessToken);
-
-  if (error || !data.user) {
+  if (error || !user) {
     return NextResponse.redirect(buildLoginRedirect(req, url));
   }
 
@@ -94,18 +66,13 @@ export async function withEdgeAuth(
     userId: string;
   }) => Promise<Response>,
 ) {
-  const { supabase, accessToken } = getSupabaseForMiddleware(req);
+  const { supabase } = getSupabaseForMiddleware(req);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (!accessToken) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
-  const { data, error } = await supabase.auth.getUser(accessToken);
-
-  if (error || !data.user) {
+  if (error || !user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "content-type": "application/json" },
@@ -113,5 +80,5 @@ export async function withEdgeAuth(
   }
 
   // Pass the edge-configured Supabase client and user id to your handler.
-  return handler({ supabase, userId: data.user.id });
+  return handler({ supabase, userId: user.id });
 }

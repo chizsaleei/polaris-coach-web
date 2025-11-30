@@ -111,7 +111,6 @@ export default async function PracticePackBanner() {
                     className="inline-flex max-w-full items-center gap-2 rounded-2xl bg-white/80 px-2.5 py-1 text-[11px] text-slate-700 shadow-sm dark:bg-slate-900/60 dark:text-slate-100"
                   >
                     {coachAvatar && (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={coachAvatar}
                         alt={coachLabel ?? 'Coach avatar'}

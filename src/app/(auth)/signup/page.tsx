@@ -5,21 +5,21 @@ import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import EmailSignInForm from '@/components/auth/EmailSignInForm'
 
 export const metadata: Metadata = {
-  title: 'Sign in · Polaris Coach',
+  title: 'Create your account · Polaris Coach',
   description:
-    'Sign in securely with your email or Google account to continue practicing with Polaris Coach.',
+    'Sign up with your email or Google account to start practicing with your Polaris Coach, track drills, and unlock billing.',
 }
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#04070f] px-4 py-12 text-white">
       <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-black/60 p-8 shadow-2xl shadow-black/40 backdrop-blur">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">
-          Log in to
+          Sign up for
         </p>
         <h1 className="mt-2 text-3xl font-bold">Polaris Coach</h1>
         <p className="mt-3 text-sm text-slate-300">
-          Continue with the latest magic link or sign in instantly with Google.
+          Create your account with a secure magic link or your Google identity. You&apos;ll be ready to practice in seconds.
         </p>
 
         <div className="mt-8 space-y-4">
@@ -38,9 +38,9 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-8 text-center text-xs text-slate-400">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="font-semibold text-white hover:underline">
-            Sign Up
+          Already have an account?{' '}
+          <Link href="/login" className="font-semibold text-white hover:underline">
+            Log in
           </Link>
         </p>
       </div>

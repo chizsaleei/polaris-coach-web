@@ -123,7 +123,6 @@ export default async function WeeklyRecapCard() {
                 return (
                   <li key={drill.drill_id} className="flex items-center gap-2">
                     {coachAvatar && (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={coachAvatar}
                         alt={coachLabel ?? 'Coach avatar'}

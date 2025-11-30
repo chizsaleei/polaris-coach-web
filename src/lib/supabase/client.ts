@@ -1,21 +1,12 @@
-// src/lib/supabase/client.ts
 'use client'
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-/**
- * If you later generate typed Supabase definitions, you can replace `unknown`
- * with your Database type here.
- */
-type TypedSupabaseClient = SupabaseClient<unknown>
+type BrowserSupabaseClient = SupabaseClient<unknown>
 
-let _client: TypedSupabaseClient | null = null
+let _client: BrowserSupabaseClient | null = null
 
-/**
- * Singleton browser client.
- * Uses anon key and respects RLS.
- */
-export function getSupabaseBrowserClient(): TypedSupabaseClient {
+export function getSupabaseBrowserClient(): BrowserSupabaseClient {
   if (_client) return _client
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -27,6 +18,11 @@ export function getSupabaseBrowserClient(): TypedSupabaseClient {
     )
   }
 
-  _client = createClient<unknown>(url, anon)
+  _client = createClient<unknown>(url, anon, {
+    auth: {
+      flowType: 'pkce',
+    },
+  })
+
   return _client
 }

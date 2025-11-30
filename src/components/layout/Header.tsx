@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const siteName = 'Polaris Coach'
@@ -15,6 +15,42 @@ const linksMarketing = [
   { href: '/pricing', label: 'Pricing' },
   { href: '/help-center', label: 'Help' },
   { href: '/path', label: 'Path' },
+]
+
+const currencyCountryNames = [
+  'United States',
+  'Canada',
+  'China',
+  'India',
+  'South Korea',
+  'Vietnam',
+  'Thailand',
+  'Philippines',
+  'Indonesia',
+  'Japan',
+  'Brazil',
+  'Mexico',
+  'Turkey',
+  'Colombia',
+  'Argentina',
+  'Peru',
+  'Chile',
+  'Saudi Arabia',
+  'United Arab Emirates',
+  'Qatar',
+  'Kuwait',
+  'Egypt',
+  'Pakistan',
+  'Bangladesh',
+  'Nepal',
+  'Sri Lanka',
+  'Myanmar',
+  'Kazakhstan',
+  'Ukraine',
+  'Morocco',
+  'Algeria',
+  'Ethiopia',
+  'Other',
 ]
 
 const linksApp = [
@@ -55,6 +91,12 @@ function NavLink({
 export default function Header() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactName, setContactName] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [contactCountry, setContactCountry] = useState('')
+  const [contactMessage, setContactMessage] = useState('')
 
   const appPrefixes = [
     '/dashboard',
@@ -67,6 +109,20 @@ export default function Header() {
 
   const isApp = appPrefixes.some((prefix) => pathname?.startsWith(prefix))
   const leftLinks = isApp ? linksApp : linksMarketing
+
+  const countries = useMemo(() => currencyCountryNames, [])
+
+  const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const subject = encodeURIComponent('Contact request from Polaris Coach')
+    const body = encodeURIComponent(
+      `Name: ${contactName || 'N/A'}\nEmail: ${contactEmail}\nPhone: ${
+        contactPhone || 'N/A'
+      }\nCountry: ${contactCountry || 'N/A'}\n\nHow can we help?\n${contactMessage}`,
+    )
+    window.location.href = `mailto:polaris@chizsaleei.com?subject=${subject}&body=${body}`
+    setContactOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur dark:border-white/10 dark:bg-[#001C29]/70">
@@ -121,11 +177,18 @@ export default function Header() {
           >
             Log in
           </Link>
+          <button
+            type="button"
+            onClick={() => setContactOpen(true)}
+            className="rounded-full border border-slate-900 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:border-white dark:text-white dark:hover:bg-white/10"
+          >
+            Contact
+          </button>
           <Link
             href="/signup"
             className="rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:border-white dark:bg-white dark:text-[#001C29]"
           >
-            Sign up for free
+            Sign up
           </Link>
           <ThemeToggle />
         </div>
@@ -172,14 +235,120 @@ export default function Header() {
             >
               Log in
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false)
+                setContactOpen(true)
+              }}
+              className="rounded-full border border-slate-900 px-4 py-2 text-center text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:border-white dark:text-white dark:hover:bg-white/10"
+            >
+              Contact
+            </button>
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
               className="rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-slate-800 dark:border-white dark:bg-white dark:text-[#001C29]"
             >
-              Sign up for free
+              Sign up
             </Link>
           </nav>
+        </div>
+      )}
+      {contactOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-6">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#00151F]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Talk to Polaris Coach
+              </h2>
+              <button
+                type="button"
+                aria-label="Close contact form"
+                onClick={() => setContactOpen(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
+              >
+                ×
+              </button>
+            </div>
+            <form className="mt-4 space-y-4" onSubmit={handleContactSubmit}>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Email
+                </label>
+                <input
+                  required
+                  type="email"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Your name
+                  </label>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Phone number (optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                    placeholder="(201) 555-0123"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Country
+                </label>
+                <select
+                  value={contactCountry}
+                  onChange={(e) => setContactCountry(e.target.value)}
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                >
+                  <option value="">Select your country</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  How can we help?
+                </label>
+                <textarea
+                  required
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  rows={4}
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                  placeholder="Tell us a bit about your needs…"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50 dark:border-white dark:bg-white dark:text-[#001C29]"
+              >
+                Talk to Polaris Coach
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </header>

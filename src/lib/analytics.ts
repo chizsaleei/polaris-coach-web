@@ -222,6 +222,5 @@ export async function withTiming<T>(
 function performanceNow(): number {
   if (typeof performance !== 'undefined' && performance.now) return performance.now()
   // Node fallback with less precision
-  // eslint-disable-next-line n/no-process-exit
   return Number(process.hrtime.bigint() / BigInt(1_000_000))
 }

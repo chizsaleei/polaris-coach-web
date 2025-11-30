@@ -44,13 +44,11 @@ export function useSessionTimer(options: UseSessionTimerOptions = {}) {
         timerRef.current = null
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running])
 
   useEffect(() => {
     if (!autoStart) return
     setRunning(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const start = () => {

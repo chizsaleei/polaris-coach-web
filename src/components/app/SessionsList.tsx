@@ -86,7 +86,6 @@ export default function SessionsList({
             <div className="flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 {coachAvatarSrc && (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={coachAvatarSrc}
                     alt={coachLabel}

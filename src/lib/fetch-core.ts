@@ -58,7 +58,9 @@ function makeRequestId(): string {
         (globalThis as typeof globalThis & { crypto?: RandomUuidSource }).crypto) ||
       undefined
     if (cryptoObj?.randomUUID) return cryptoObj.randomUUID()
-  } catch {}
+  } catch {
+    // ignore lack of crypto support; fallback below
+  }
   return `req_${Math.random().toString(36).slice(2)}${Date.now()}`
 }
 

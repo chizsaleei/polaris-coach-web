@@ -45,7 +45,6 @@ export default function MicRecorder({
     return () => {
       stopInternal()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const start = async () => {

@@ -203,7 +203,6 @@ export default function DashboardSummary({
         <div className="flex items-center gap-4">
           <div className="relative h-14 w-14">
             {/* User avatar */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt="User avatar"
               src={profile.avatarUrl ?? '/avatar-fallback.png'}

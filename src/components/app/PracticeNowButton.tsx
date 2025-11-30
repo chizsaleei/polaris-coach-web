@@ -117,7 +117,6 @@ export default function PracticeNowButton({
       if (onResult) {
         onResult(data)
       } else {
-        // eslint-disable-next-line no-console
         console.debug('PracticeNow', data)
       }
     } catch (err: unknown) {
@@ -125,7 +124,6 @@ export default function PracticeNowButton({
       if (onError) {
         onError(msg)
       } else {
-        // eslint-disable-next-line no-console
         console.error('PracticeNow error', msg)
       }
     } finally {

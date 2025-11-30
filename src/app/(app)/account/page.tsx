@@ -147,7 +147,6 @@ export default async function AccountPage({ searchParams }: { searchParams?: Sea
             </dt>
             <dd className="mt-2 flex items-center gap-3 text-sm font-medium text-slate-900">
               {activeCoachAvatar && (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={activeCoachAvatar}
                   alt={activeCoachLabel}
@@ -489,7 +488,6 @@ async function openBillingPortal() {
     if (!result.ok || !url) throw new Error('Missing billing portal URL')
     redirect(url)
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('billing portal failed', error)
     redirect('/account?billingError=1')
   }

@@ -39,7 +39,6 @@ export default function ShadowingPlayer({
   useEffect(() => {
     if (!autoPrepare) return
     void ensureAudio()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPrepare, text, voice])
 
   const handlePlay = async () => {

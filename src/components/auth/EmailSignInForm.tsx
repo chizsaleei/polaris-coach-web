@@ -6,9 +6,14 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 type Props = {
   nextPath?: string
   className?: string
+  variant?: 'light' | 'dark'
 }
 
-export default function EmailSignInForm({ nextPath = '/dashboard', className }: Props) {
+export default function EmailSignInForm({
+  nextPath = '/dashboard',
+  className,
+  variant = 'light',
+}: Props) {
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -54,28 +59,39 @@ export default function EmailSignInForm({ nextPath = '/dashboard', className }: 
     }
   }
 
+  const isDark = variant === 'dark'
+  const labelText = isDark ? 'text-white' : 'text-slate-900'
+  const inputClasses = isDark
+    ? 'border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:border-white'
+    : 'border-slate-300 text-slate-900 focus:border-slate-900'
+  const buttonClasses = isDark
+    ? 'bg-white text-slate-900 hover:bg-slate-200'
+    : 'bg-slate-900 text-white hover:bg-slate-800'
+  const messageColor = isDark ? 'text-emerald-300' : 'text-emerald-600'
+  const errorColor = isDark ? 'text-red-300' : 'text-red-600'
+
   return (
     <form onSubmit={handleSubmit} className={className}>
-      <label className="block text-sm font-semibold text-slate-900">
-        Email address
+      <label className={`block text-sm font-semibold ${labelText}`}>
+        Email Address
         <input
           type="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="mt-1 w-full rounded-2xl border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+          className={`mt-2 w-full rounded-2xl border px-3 py-2 text-sm focus:outline-none ${inputClasses}`}
           placeholder="you@example.com"
         />
       </label>
       <button
         type="submit"
         disabled={busy}
-        className="mt-3 w-full rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`mt-4 w-full rounded-2xl px-4 py-2 text-sm font-semibold shadow disabled:cursor-not-allowed disabled:opacity-60 ${buttonClasses}`}
       >
-        {busy ? 'Sending link…' : 'Send magic link'}
+        {busy ? 'Sending link...' : 'Continue with Email'}
       </button>
-      {message && <p className="mt-2 text-xs text-emerald-600">{message}</p>}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {message && <p className={`mt-2 text-xs ${messageColor}`}>{message}</p>}
+      {error && <p className={`mt-2 text-xs ${errorColor}`}>{error}</p>}
     </form>
   )
 }

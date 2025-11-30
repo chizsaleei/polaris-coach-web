@@ -103,7 +103,6 @@ export default function AssignmentCard({
         {(coachAvatarSrc || coachText) && (
           <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-2.5 py-1 text-[11px] text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
             {coachAvatarSrc && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={coachAvatarSrc}
                 alt={coachText ?? 'Coach avatar'}
