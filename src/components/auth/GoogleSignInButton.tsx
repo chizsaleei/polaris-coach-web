@@ -8,9 +8,10 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client'
 type Props = {
   className?: string
   children?: React.ReactNode
+  nextPath?: string
 }
 
-export default function GoogleSignInButton({ className, children }: Props) {
+export default function GoogleSignInButton({ className, children, nextPath = '/dashboard' }: Props) {
   const [busy, setBusy] = useState(false)
 
   const handleClick = async () => {
@@ -18,14 +19,20 @@ export default function GoogleSignInButton({ className, children }: Props) {
     setBusy(true)
     try {
       const supabase = getSupabaseBrowserClient()
-      const redirectTo =
+      const origin =
         typeof window !== 'undefined'
-          ? `${window.location.origin}/api/auth/callback`
-          : undefined
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_APP_BASE_URL
+      const callback = origin ? new URL('/auth/callback', origin) : null
+
+      if (callback) {
+        const next = nextPath.startsWith('/') ? nextPath : '/dashboard'
+        callback.searchParams.set('next', next)
+      }
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo },
+        options: { redirectTo: callback?.toString() },
       })
 
       if (error) {
@@ -60,4 +67,3 @@ export default function GoogleSignInButton({ className, children }: Props) {
     </button>
   )
 }
-

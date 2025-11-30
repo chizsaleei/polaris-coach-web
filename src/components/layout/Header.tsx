@@ -6,8 +6,6 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
-import SignOutButton from '@/components/auth/SignOutButton'
 
 const siteName = 'Polaris Coach'
 
@@ -117,8 +115,18 @@ export default function Header() {
 
         {/* Auth + Controls */}
         <div className="hidden items-center gap-2 md:flex">
-          <GoogleSignInButton />
-          <SignOutButton />
+          <Link
+            href="/login"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-900 hover:border-slate-400 dark:border-white/30 dark:text-white"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:border-white dark:bg-white dark:text-[#001C29]"
+          >
+            Sign up for free
+          </Link>
           <ThemeToggle />
         </div>
 
@@ -157,10 +165,20 @@ export default function Header() {
                 {l.label}
               </Link>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <GoogleSignInButton />
-              <SignOutButton />
-            </div>
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="mt-2 rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-900 hover:border-slate-400 dark:border-white/30 dark:text-white"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setOpen(false)}
+              className="rounded-full border border-slate-900 bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-slate-800 dark:border-white dark:bg-white dark:text-[#001C29]"
+            >
+              Sign up for free
+            </Link>
           </nav>
         </div>
       )}

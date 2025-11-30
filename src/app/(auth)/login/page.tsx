@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
+import EmailSignInForm from '@/components/auth/EmailSignInForm'
 
 export const metadata: Metadata = {
   title: 'Sign in · Polaris Coach',
@@ -20,8 +21,16 @@ export default function LoginPage() {
           verification codes to keep your account safe.
         </p>
 
-        <div className="mt-8">
-          <GoogleSignInButton />
+        <div className="mt-8 space-y-4">
+          <GoogleSignInButton nextPath="/dashboard" />
+
+          <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span>or continue with email</span>
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <EmailSignInForm nextPath="/dashboard" />
         </div>
 
         <p className="mt-3 text-xs text-slate-500">

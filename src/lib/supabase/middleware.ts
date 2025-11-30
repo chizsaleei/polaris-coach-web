@@ -49,6 +49,15 @@ export function getSupabaseForMiddleware(req: NextRequest) {
  *   return protectEdgePath(req, ["/dashboard", "/chat", "/explore"]);
  * }
  */
+function buildLoginRedirect(req: NextRequest, url: URL) {
+  const login = new URL("/login", req.url);
+  const nextPath = url.pathname + (url.search || "");
+  if (nextPath.startsWith("/")) {
+    login.searchParams.set("next", nextPath);
+  }
+  return login;
+}
+
 export async function protectEdgePath(
   req: NextRequest,
   prefixes: string[],
@@ -61,17 +70,13 @@ export async function protectEdgePath(
 
   // No access token means no authenticated user.
   if (!accessToken) {
-    const login = new URL("/login", req.url);
-    login.searchParams.set("next", url.pathname);
-    return NextResponse.redirect(login);
+    return NextResponse.redirect(buildLoginRedirect(req, url));
   }
 
   const { data, error } = await supabase.auth.getUser(accessToken);
 
   if (error || !data.user) {
-    const login = new URL("/login", req.url);
-    login.searchParams.set("next", url.pathname);
-    return NextResponse.redirect(login);
+    return NextResponse.redirect(buildLoginRedirect(req, url));
   }
 
   // User is authenticated; continue with the modified response.
