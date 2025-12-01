@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Loader2, LogIn } from 'lucide-react'
 
-import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 
 type Props = {
   className?: string
@@ -18,7 +18,7 @@ export default function GoogleSignInButton({ className, children, nextPath = '/d
     if (busy) return
     setBusy(true)
     try {
-      const supabase = getSupabaseBrowserClient()
+      const supabase = createClient()
       if (typeof window === 'undefined') {
         setBusy(false)
         return

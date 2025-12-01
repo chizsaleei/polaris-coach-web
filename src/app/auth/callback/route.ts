@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export const dynamic = 'force-dynamic'
+
+const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL')
+const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
@@ -15,7 +17,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth-code-error', url.origin))
   }
 
-  const supabase = createRouteHandlerClient({ cookies })
+  const pendingCookies: PendingCookie[] = []
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name) {
+        return request.cookies.get(name)?.value
+      },
+      set(name, value, options) {
+        pendingCookies.push({ name, value, options })
+      },
+      remove(name, options) {
+        pendingCookies.push({
+          name,
+          value: '',
+          options: { ...options, maxAge: 0 },
+        })
+      },
+    },
+  })
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (data?.session) {
@@ -34,5 +53,19 @@ export async function GET(request: NextRequest) {
     redirectPath = nextParam
   }
 
-  return NextResponse.redirect(new URL(redirectPath, url.origin))
+  const response = NextResponse.redirect(new URL(redirectPath, url.origin))
+  for (const cookie of pendingCookies) {
+    response.cookies.set(cookie.name, cookie.value, cookie.options)
+  }
+  return response
+}
+
+type PendingCookie = { name: string; value: string; options?: CookieOptions }
+
+function getEnv(key: string) {
+  const value = process.env[key]
+  if (!value) {
+    throw new Error(`Missing env var ${key} for auth callback`)
+  }
+  return value
 }

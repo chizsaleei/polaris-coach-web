@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+
+import { createClient } from '@/utils/supabase/client'
 
 type Props = {
   nextPath?: string
@@ -28,7 +29,7 @@ export default function EmailSignInForm({
     setError(null)
 
     try {
-      const supabase = getSupabaseBrowserClient()
+      const supabase = createClient()
       const origin =
         typeof window !== 'undefined'
           ? window.location.origin

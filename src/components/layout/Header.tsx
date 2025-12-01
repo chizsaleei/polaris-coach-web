@@ -120,7 +120,7 @@ export default function Header() {
         contactPhone || 'N/A'
       }\nCountry: ${contactCountry || 'N/A'}\n\nHow can we help?\n${contactMessage}`,
     )
-    window.location.href = `mailto:polaris@chizsaleei.com?subject=${subject}&body=${body}`
+    window.location.href = `mailto:polaris@chizsalee.com?subject=${subject}&body=${body}`
     setContactOpen(false)
   }
 
@@ -268,7 +268,7 @@ export default function Header() {
                 onClick={() => setContactOpen(false)}
                 className="rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
               >
-                ×
+                
               </button>
             </div>
             <form className="mt-4 space-y-4" onSubmit={handleContactSubmit}>
@@ -311,6 +311,35 @@ export default function Header() {
                   />
                 </div>
               </div>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white/80">
+                <p className="font-semibold text-slate-900 dark:text-white">Review details</p>
+                <dl className="mt-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Name
+                    </dt>
+                    <dd className="text-right font-medium text-slate-900 dark:text-white">
+                      {contactName || 'Not provided'}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Email
+                    </dt>
+                    <dd className="text-right font-medium text-slate-900 dark:text-white">
+                      {contactEmail || 'Not provided'}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Phone
+                    </dt>
+                    <dd className="text-right font-medium text-slate-900 dark:text-white">
+                      {contactPhone || 'Not provided'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Country
@@ -318,7 +347,7 @@ export default function Header() {
                 <select
                   value={contactCountry}
                   onChange={(e) => setContactCountry(e.target.value)}
-                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-transparent dark:text-white"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/20 dark:bg-[#0b2030] dark:text-white dark:[color-scheme:dark] dark:[&_option]:bg-[#0b2030] dark:[&_option]:text-white"
                 >
                   <option value="">Select your country</option>
                   {countries.map((country) => (

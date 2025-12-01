@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 
-import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+import { createClient } from '@/utils/supabase/client'
 
 type Props = {
   className?: string
@@ -17,7 +17,7 @@ export default function SignOutButton({ className, children }: Props) {
     if (busy) return
     setBusy(true)
     try {
-      const supabase = getSupabaseBrowserClient()
+      const supabase = createClient()
       await supabase.auth.signOut()
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
