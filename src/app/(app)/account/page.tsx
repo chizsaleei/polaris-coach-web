@@ -1,10 +1,12 @@
 // src/app/(app)/account/page.tsx
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { CreditCard, Download, ShieldCheck, Trash2, UserRound } from 'lucide-react'
 
-import { getSupabaseServerClient, requireUser } from '@/lib/supabase/server'
+import { requireUser } from '@/lib/supabase/server'
+import { createClient, type AppSupabaseServerClient } from '@/utils/supabase/server'
 import { corePost, idempotencyKey } from '@/lib/fetch-core'
 import type { CoachKey } from '@/types'
 import { COACH_AVATAR, COACH_LABELS, isCoachKey } from '@/lib/coaches'
@@ -68,7 +70,8 @@ const PLAN_FEATURES: Record<TierName, string[]> = {
 }
 
 export default async function AccountPage({ searchParams }: { searchParams?: SearchParams }) {
-  const supabase = getSupabaseServerClient()
+  const cookieStore = cookies()
+  const supabase = createClient(cookieStore)
   const { data: userData } = await supabase.auth.getUser()
   const user = userData?.user
   if (!user) redirect('/login')
@@ -374,7 +377,7 @@ function StatLine({ label, value, hint }: { label: string; value: string; hint?:
 }
 
 async function loadAccountOverview(
-  supabase: ReturnType<typeof getSupabaseServerClient>,
+  supabase: AppSupabaseServerClient,
   userId: string,
 ): Promise<AccountOverview> {
   const profileQuery = supabase

@@ -1,117 +1,78 @@
 // src/lib/supabase/server.ts
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import type { Session } from '@supabase/supabase-js'
+
 import {
-  createClient,
-  type SupabaseClient,
-  type User,
-} from "@supabase/supabase-js";
+  createClient as createFrameworkClient,
+  type AppSupabaseServerClient,
+} from '@/utils/supabase/server'
 
-type ServerSupabaseClient = SupabaseClient<unknown>;
+type ServerSupabaseClient = AppSupabaseServerClient
+type CookieStore = ReturnType<typeof cookies>
 
-function getAccessTokenFromCookies(): string | null {
-  const cookieStore = cookies();
-  return (
-    cookieStore.get("sb-access-token")?.value ||
-    cookieStore.get("supabase-auth-token")?.value ||
-    null
-  );
+export function getSupabaseServerClient(
+  cookieStore?: CookieStore,
+): ServerSupabaseClient {
+  const store = cookieStore ?? cookies()
+  return createFrameworkClient(store)
 }
 
-/**
- * Server side client bound to Next cookies.
- * Works in server components and route handlers.
- *
- * Uses anon key plus the user's access token (from cookies) so that
- * RLS policies still apply on the database.
- */
-export function getSupabaseServerClient(): ServerSupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY for Supabase client",
-    );
-  }
-
-  const accessToken = getAccessTokenFromCookies();
-
-  const client = createClient<unknown>(url, anonKey, {
-    global: {
-      headers: {
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        "x-forwarded-for": headers().get("x-forwarded-for") ?? "",
-        "user-agent": headers().get("user-agent") ?? "",
-      },
-    },
-    auth: {
-      persistSession: false,
-    },
-  });
-
-  return client;
-}
-
-export type ServerSession = {
-  access_token: string;
-  user?: User;
-  // Extra fields are allowed but not required by callers
-  [key: string]: unknown;
-};
+export type ServerSession = Session
 
 /**
  * Fetch current session on the server.
- * Returns a minimal session object with access_token and user.
+ * Returns the Supabase session (includes access_token and user).
  */
-export async function getServerSession(): Promise<ServerSession | null> {
-  const accessToken = getAccessTokenFromCookies();
-  if (!accessToken) return null;
-
-  const supabase = getSupabaseServerClient();
-
+export async function getServerSession(
+  cookieStore?: CookieStore,
+): Promise<ServerSession | null> {
+  const supabase = getSupabaseServerClient(cookieStore)
   try {
-    const { data, error } = await supabase.auth.getUser(accessToken);
-    if (error) return null;
-
-    return {
-      access_token: accessToken,
-      user: data.user ?? undefined,
-    };
+    const { data, error } = await supabase.auth.getSession()
+    if (error) return null
+    return data.session ?? null
   } catch {
-    return null;
+    return null
   }
 }
 
 /**
  * Fetch current user on the server.
  */
-export async function getServerUser() {
-  const session = await getServerSession();
-  return session?.user ?? null;
+export async function getServerUser(cookieStore?: CookieStore) {
+  const session = await getServerSession(cookieStore)
+  return session?.user ?? null
 }
 
 /**
  * Redirect to /login if no user.
  */
-export async function requireUser(redirectTo = "/login") {
-  const user = await getServerUser();
-  if (!user) redirect(redirectTo);
-  return user;
+export async function requireUser(
+  redirectTo = '/login',
+  cookieStore?: CookieStore,
+) {
+  const user = await getServerUser(cookieStore)
+  if (!user) redirect(redirectTo)
+  return user
 }
 
 /**
  * Simple admin check using your SQL helper.
  * You have an is_admin SQL helper in policies. This calls it.
  */
-export async function requireAdmin(redirectTo = "/") {
-  const supabase = getSupabaseServerClient();
-  const user = await getServerUser();
-  if (!user) redirect("/login");
+export async function requireAdmin(
+  redirectTo = '/',
+  cookieStore?: CookieStore,
+) {
+  const store = cookieStore ?? cookies()
+  const supabase = getSupabaseServerClient(store)
+  const user = await getServerUser(store)
+  if (!user) redirect('/login')
 
   // Prefer RPC if you published a SECURITY DEFINER function is_admin()
-  const { data, error } = await supabase.rpc("is_admin");
-  if (error || !data) redirect(redirectTo);
+  const { data, error } = await supabase.rpc('is_admin')
+  if (error || !data) redirect(redirectTo)
 
-  return user;
+  return user
 }
