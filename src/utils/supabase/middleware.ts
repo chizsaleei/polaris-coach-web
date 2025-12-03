@@ -6,8 +6,14 @@ import { type NextRequest, NextResponse } from 'next/server'
 type Database = any
 export type AppSupabaseMiddlewareClient = SupabaseClient<Database>
 
-const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-const supabaseKey = getRequiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+const supabaseUrl = getRequiredEnv(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  'NEXT_PUBLIC_SUPABASE_URL',
+)
+const supabaseKey = getRequiredEnv(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+)
 
 /**
  * Build a Supabase client within Next middleware.
@@ -36,8 +42,7 @@ export function createClient(request: NextRequest) {
   return { supabase, response }
 }
 
-function getRequiredEnv(key: string) {
-  const value = process.env[key]
+function getRequiredEnv(value: string | undefined, key: string) {
   if (!value) {
     throw new Error(`Missing ${key} while creating the Supabase middleware client`)
   }

@@ -7,8 +7,14 @@ type CookieStore = ReturnType<typeof cookies>
 type Database = any
 export type AppSupabaseServerClient = SupabaseClient<Database>
 
-const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-const supabaseKey = getRequiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+const supabaseUrl = getRequiredEnv(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  'NEXT_PUBLIC_SUPABASE_URL',
+)
+const supabaseKey = getRequiredEnv(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+)
 
 /**
  * Supabase App Framework helper.
@@ -35,8 +41,7 @@ export function createClient(cookieStore?: CookieStore): AppSupabaseServerClient
   })
 }
 
-function getRequiredEnv(key: string) {
-  const value = process.env[key]
+function getRequiredEnv(value: string | undefined, key: string) {
   if (!value) {
     throw new Error(`Missing ${key} while creating the Supabase server client`)
   }

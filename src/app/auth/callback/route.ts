@@ -3,8 +3,11 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export const dynamic = 'force-dynamic'
 
-const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL')
-const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+const supabaseUrl = getEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, 'NEXT_PUBLIC_SUPABASE_URL')
+const supabaseAnonKey = getEnv(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+)
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
@@ -62,8 +65,7 @@ export async function GET(request: NextRequest) {
 
 type PendingCookie = { name: string; value: string; options?: CookieOptions }
 
-function getEnv(key: string) {
-  const value = process.env[key]
+function getEnv(value: string | undefined, key: string) {
   if (!value) {
     throw new Error(`Missing env var ${key} for auth callback`)
   }
